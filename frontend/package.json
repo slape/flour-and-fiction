@@ -13,6 +13,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@portabletext/react": "^6.0.3",
     "@sanity/client": "^7.13.2",
     "@sanity/image-url": "^1.2.0",
     "@sanity/uuid": "^3.0.2",
