@@ -13,6 +13,43 @@
  */
 
 // Source: ../sanity.schema.json
+export type IngredientItem = {
+  _type: 'ingredientItem'
+  text: string
+  affiliateUrl?: string
+}
+
+export type IngredientGroup = {
+  _type: 'ingredientGroup'
+  groupName?: string
+  items: Array<
+    {
+      _key: string
+    } & IngredientItem
+  >
+}
+
+export type SanityImageAssetReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
+}
+
+export type Seo = {
+  _type: 'seo'
+  metaTitle?: string
+  metaDescription?: string
+  ogImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    _type: 'image'
+  }
+  canonicalUrl?: string
+}
+
 export type PageReference = {
   _ref: string
   _type: 'reference'
@@ -34,13 +71,6 @@ export type Link = {
   page?: PageReference
   post?: PostReference
   openInNewTab?: boolean
-}
-
-export type SanityImageAssetReference = {
-  _ref: string
-  _type: 'reference'
-  _weak?: boolean
-  [internalGroqTypeReferenceTo]?: 'sanity.imageAsset'
 }
 
 export type CallToAction = {
@@ -96,15 +126,22 @@ export type BlockContent = Array<
       }>
       style?: 'normal' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'blockquote'
       listItem?: 'bullet' | 'number'
-      markDefs?: Array<{
-        linkType?: 'href' | 'page' | 'post'
-        href?: string
-        page?: PageReference
-        post?: PostReference
-        openInNewTab?: boolean
-        _type: 'link'
-        _key: string
-      }>
+      markDefs?: Array<
+        | {
+            href: string
+            _type: 'affiliateLink'
+            _key: string
+          }
+        | {
+            linkType?: 'href' | 'page' | 'post'
+            href?: string
+            page?: PageReference
+            post?: PostReference
+            openInNewTab?: boolean
+            _type: 'link'
+            _key: string
+          }
+      >
       level?: number
       _type: 'block'
       _key: string
@@ -123,6 +160,151 @@ export type Button = {
   _type: 'button'
   buttonText?: string
   link?: Link
+}
+
+export type DiscussionGuideReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'discussionGuide'
+}
+
+export type RecipeReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'recipe'
+}
+
+export type BookClubKit = {
+  _id: string
+  _type: 'bookClubKit'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title: string
+  slug: Slug
+  month?:
+    | 'January'
+    | 'February'
+    | 'March'
+    | 'April'
+    | 'May'
+    | 'June'
+    | 'July'
+    | 'August'
+    | 'September'
+    | 'October'
+    | 'November'
+    | 'December'
+  year?: number
+  body?: BlockContent
+  coverImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  bookPick?: PostReference | DiscussionGuideReference
+  recipe?: RecipeReference
+  discussionGuide?: DiscussionGuideReference
+  journalPrompts?: Array<string>
+  date?: string
+  seo?: Seo
+}
+
+export type SanityImageCrop = {
+  _type: 'sanity.imageCrop'
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
+export type SanityImageHotspot = {
+  _type: 'sanity.imageHotspot'
+  x: number
+  y: number
+  height: number
+  width: number
+}
+
+export type Slug = {
+  _type: 'slug'
+  current: string
+  source?: string
+}
+
+export type PersonReference = {
+  _ref: string
+  _type: 'reference'
+  _weak?: boolean
+  [internalGroqTypeReferenceTo]?: 'person'
+}
+
+export type DiscussionGuide = {
+  _id: string
+  _type: 'discussionGuide'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  bookTitle: string
+  slug: Slug
+  bookAuthor: string
+  bookCover?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  summary?: string
+  affiliateUrl?: string
+  body?: BlockContent
+  questions: Array<string>
+  pairsWithRecipe?: RecipeReference
+  author?: PersonReference
+  date?: string
+  seo?: Seo
+}
+
+export type Recipe = {
+  _id: string
+  _type: 'recipe'
+  _createdAt: string
+  _updatedAt: string
+  _rev: string
+  title: string
+  slug: Slug
+  coverImage?: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  }
+  body?: BlockContent
+  ingredients: Array<
+    {
+      _key: string
+    } & IngredientGroup
+  >
+  steps: Array<string>
+  prepTime?: number
+  cookTime?: number
+  servings?: string
+  course?: 'Appetizer' | 'Main Course' | 'Side Dish' | 'Dessert' | 'Drinks' | 'Snack' | 'Breakfast'
+  cuisine?: string
+  equipment?: Array<string>
+  notes?: string
+  pairsWithBook?: PostReference
+  author?: PersonReference
+  date?: string
+  seo?: Seo
 }
 
 export type Settings = {
@@ -165,22 +347,6 @@ export type Settings = {
   }
 }
 
-export type SanityImageCrop = {
-  _type: 'sanity.imageCrop'
-  top: number
-  bottom: number
-  left: number
-  right: number
-}
-
-export type SanityImageHotspot = {
-  _type: 'sanity.imageHotspot'
-  x: number
-  y: number
-  height: number
-  width: number
-}
-
 export type Page = {
   _id: string
   _type: 'page'
@@ -191,6 +357,7 @@ export type Page = {
   slug: Slug
   heading: string
   subheading?: string
+  seo?: Seo
   pageBuilder?: Array<
     | ({
         _key: string
@@ -199,13 +366,6 @@ export type Page = {
         _key: string
       } & InfoSection)
   >
-}
-
-export type PersonReference = {
-  _ref: string
-  _type: 'reference'
-  _weak?: boolean
-  [internalGroqTypeReferenceTo]?: 'person'
 }
 
 export type Post = {
@@ -228,6 +388,7 @@ export type Post = {
   }
   date?: string
   author?: PersonReference
+  seo?: Seo
 }
 
 export type Person = {
@@ -246,12 +407,6 @@ export type Person = {
     alt?: string
     _type: 'image'
   }
-}
-
-export type Slug = {
-  _type: 'slug'
-  current: string
-  source?: string
 }
 
 export type SanityAssistInstructionTask = {
@@ -488,23 +643,31 @@ export type Geopoint = {
 }
 
 export type AllSanitySchemaTypes =
+  | IngredientItem
+  | IngredientGroup
+  | SanityImageAssetReference
+  | Seo
   | PageReference
   | PostReference
   | Link
-  | SanityImageAssetReference
   | CallToAction
   | InfoSection
   | BlockContentTextOnly
   | BlockContent
   | Button
-  | Settings
+  | DiscussionGuideReference
+  | RecipeReference
+  | BookClubKit
   | SanityImageCrop
   | SanityImageHotspot
-  | Page
+  | Slug
   | PersonReference
+  | DiscussionGuide
+  | Recipe
+  | Settings
+  | Page
   | Post
   | Person
-  | Slug
   | SanityAssistInstructionTask
   | SanityAssistTaskStatus
   | SanityAssistSchemaTypeAnnotations
