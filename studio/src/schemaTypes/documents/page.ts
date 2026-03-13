@@ -41,6 +41,11 @@ export const page = defineType({
       type: 'string',
     }),
     defineField({
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
+    }),
+    defineField({
       name: 'pageBuilder',
       title: 'Page builder',
       type: 'array',

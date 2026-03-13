@@ -23,6 +23,20 @@ export const blockContent = defineType({
       marks: {
         annotations: [
           {
+            name: 'affiliateLink',
+            type: 'object',
+            title: 'Affiliate Link',
+            icon: () => '🔗',
+            fields: [
+              defineField({
+                name: 'href',
+                title: 'Affiliate URL',
+                type: 'url',
+                validation: (rule) => rule.required(),
+              }),
+            ],
+          },
+          {
             name: 'link',
             type: 'object',
             title: 'Link',

@@ -1,0 +1,176 @@
+import {defineField, defineType} from 'sanity'
+import {UtensilsCrossedIcon} from 'lucide-react'
+
+export const recipe = defineType({
+  name: 'recipe',
+  title: 'Recipe',
+  icon: UtensilsCrossedIcon,
+  type: 'document',
+  groups: [
+    {name: 'content', title: 'Content', default: true},
+    {name: 'details', title: 'Details'},
+    {name: 'connections', title: 'Connections'},
+    {name: 'seo', title: 'SEO'},
+  ],
+  fields: [
+    defineField({
+      name: 'title',
+      title: 'Recipe Title',
+      type: 'string',
+      group: 'content',
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      group: 'content',
+      options: {source: 'title', maxLength: 96},
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: 'coverImage',
+      title: 'Cover Image',
+      type: 'image',
+      group: 'content',
+      options: {
+        hotspot: true,
+        aiAssist: {imageDescriptionField: 'alt'},
+      },
+      fields: [
+        {
+          name: 'alt',
+          type: 'string',
+          title: 'Alternative text',
+          description: 'Important for SEO and accessibility.',
+        },
+      ],
+    }),
+    defineField({
+      name: 'body',
+      title: 'Introduction',
+      type: 'blockContent',
+      group: 'content',
+      description: 'Write the story behind this recipe, the pairing, or any context.',
+    }),
+    defineField({
+      name: 'ingredients',
+      title: 'Ingredients',
+      type: 'array',
+      group: 'content',
+      of: [{type: 'ingredientGroup'}],
+      description: 'Add ingredient groups. Use one group for simple recipes, multiple for complex ones.',
+      validation: (rule) => rule.required().min(1),
+    }),
+    defineField({
+      name: 'steps',
+      title: 'Steps',
+      type: 'array',
+      group: 'content',
+      of: [{type: 'text', rows: 3}],
+      description: 'Add each step as a separate entry.',
+      validation: (rule) => rule.required().min(1),
+    }),
+    defineField({
+      name: 'prepTime',
+      title: 'Prep Time (minutes)',
+      type: 'number',
+      group: 'details',
+    }),
+    defineField({
+      name: 'cookTime',
+      title: 'Cook Time (minutes)',
+      type: 'number',
+      group: 'details',
+    }),
+    defineField({
+      name: 'servings',
+      title: 'Servings',
+      type: 'string',
+      group: 'details',
+      description: 'e.g. "4 servings", "2 cups", "12 muffins"',
+    }),
+    defineField({
+      name: 'course',
+      title: 'Course',
+      type: 'string',
+      group: 'details',
+      options: {
+        list: [
+          'Appetizer',
+          'Main Course',
+          'Side Dish',
+          'Dessert',
+          'Drinks',
+          'Snack',
+          'Breakfast',
+        ],
+      },
+    }),
+    defineField({
+      name: 'cuisine',
+      title: 'Cuisine',
+      type: 'string',
+      group: 'details',
+      description: 'e.g. "Indian", "French", "Southern"',
+    }),
+    defineField({
+      name: 'equipment',
+      title: 'Equipment',
+      type: 'array',
+      group: 'details',
+      of: [{type: 'string'}],
+      description: 'List any special equipment needed.',
+    }),
+    defineField({
+      name: 'notes',
+      title: 'Recipe Notes',
+      type: 'text',
+      group: 'details',
+      rows: 4,
+      description: 'Storage tips, substitutions, make-ahead notes.',
+    }),
+    defineField({
+      name: 'pairsWithBook',
+      title: 'Pairs with Book',
+      type: 'reference',
+      group: 'connections',
+      to: [{type: 'post'}],
+      description: 'Link to the book review or discussion guide this recipe pairs with.',
+    }),
+    defineField({
+      name: 'author',
+      title: 'Author',
+      type: 'reference',
+      group: 'connections',
+      to: [{type: 'person'}],
+    }),
+    defineField({
+      name: 'date',
+      title: 'Date',
+      type: 'datetime',
+      group: 'connections',
+      initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
+      name: 'seo',
+      title: 'SEO',
+      type: 'seo',
+      group: 'seo',
+    }),
+  ],
+  preview: {
+    select: {
+      title: 'title',
+      media: 'coverImage',
+      course: 'course',
+    },
+    prepare({title, media, course}) {
+      return {
+        title: title || 'Untitled Recipe',
+        subtitle: course || 'Recipe',
+        media,
+      }
+    },
+  },
+})
