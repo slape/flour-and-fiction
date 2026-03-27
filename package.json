@@ -1,5 +1,7 @@
 {
-  "name": "sanity-template-nextjs-clean",
+  "private": true,
+  "version": "1.0.0",
+  "name": "flour-and-fiction",
   "description": "Next.js + Sanity: A Powerful Website Starter with Real-time Visual Editing",
   "keywords": [
     "Sanity",
@@ -31,5 +33,10 @@
     "@sanity/prettier-config": "^2.0.2",
     "npm-run-all2": "^5.0.2",
     "prettier": "^3.7.3"
+  },
+  "dependencies": {
+    "@sanity/vision": "^5.18.0",
+    "sanity": "^5.18.0",
+    "styled-components": "^6.3.12"
   }
 }
