@@ -825,8 +825,18 @@ export type GetPageQueryResult = {
 
 // Source: sanity/lib/queries.ts
 // Variable: sitemapData
-// Query: *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {    "slug": slug.current,    _type,    _updatedAt,  }
+// Query: *[_type in ["page", "post", "recipe", "discussionGuide", "bookClubKit"] && defined(slug.current)] | order(_type asc) {    "slug": slug.current,    _type,    _updatedAt,  }
 export type SitemapDataResult = Array<
+  | {
+      slug: string
+      _type: 'bookClubKit'
+      _updatedAt: string
+    }
+  | {
+      slug: string
+      _type: 'discussionGuide'
+      _updatedAt: string
+    }
   | {
       slug: string
       _type: 'page'
@@ -837,12 +847,49 @@ export type SitemapDataResult = Array<
       _type: 'post'
       _updatedAt: string
     }
+  | {
+      slug: string
+      _type: 'recipe'
+      _updatedAt: string
+    }
 >
 
 // Source: sanity/lib/queries.ts
 // Variable: allPostsQuery
 // Query: *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
 export type AllPostsQueryResult = Array<{
+  _id: string
+  status: 'draft' | 'published'
+  title: string
+  slug: string
+  excerpt: string | null
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: recentPostsQuery
+// Query: *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...4] {      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
+export type RecentPostsQueryResult = Array<{
   _id: string
   status: 'draft' | 'published'
   title: string
@@ -989,17 +1036,555 @@ export type PagesSlugsResult = Array<{
   slug: string
 }>
 
+// Source: sanity/lib/queries.ts
+// Variable: pageOrPostSlugs
+// Query: *[_type in ["page", "post"] && defined(slug.current)]  {"slug": slug.current}
+export type PageOrPostSlugsResult = Array<{
+  slug: string
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: postBySlugQuery
+// Query: *[_type == "post" && slug.current == $slug] [0] {    content[]{      ...,      markDefs[]{        ...,          _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }    },      _id,  "status": select(_originalId in path("drafts.**") => "draft", "published"),  "title": coalesce(title, "Untitled"),  "slug": slug.current,  excerpt,  coverImage,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  }
+export type PostBySlugQueryResult = {
+  content: Array<
+    | {
+        children?: Array<{
+          marks?: Array<string>
+          text?: string
+          _type: 'span'
+          _key: string
+        }>
+        style?: 'blockquote' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'normal'
+        listItem?: 'bullet' | 'number'
+        markDefs: Array<
+          | {
+              href: string
+              _type: 'affiliateLink'
+              _key: string
+            }
+          | {
+              linkType?: 'href' | 'page' | 'post'
+              href?: string
+              page: string | null
+              post: string | null
+              openInNewTab?: boolean
+              _type: 'link'
+              _key: string
+            }
+        > | null
+        level?: number
+        _type: 'block'
+        _key: string
+      }
+    | {
+        asset?: SanityImageAssetReference
+        media?: unknown
+        hotspot?: SanityImageHotspot
+        crop?: SanityImageCrop
+        _type: 'image'
+        _key: string
+        markDefs: null
+      }
+  > | null
+  _id: string
+  status: 'draft' | 'published'
+  title: string
+  slug: string
+  excerpt: string | null
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: recipeQuery
+// Query: *[_type == "recipe" && slug.current == $slug] [0] {    body[]{      ...,      markDefs[]{        ...,          _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }    },      _id,  "title": coalesce(title, "Untitled Recipe"),  "slug": slug.current,  coverImage,  body,  ingredients,  steps,  prepTime,  cookTime,  servings,  course,  cuisine,  equipment,  notes,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  "pairsWithBook": pairsWithBook->{title, "slug": slug.current},  seo,  }
+export type RecipeQueryResult = {
+  body: BlockContent | null
+  _id: string
+  title: string
+  slug: string
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  ingredients: Array<
+    {
+      _key: string
+    } & IngredientGroup
+  >
+  steps: Array<string>
+  prepTime: number | null
+  cookTime: number | null
+  servings: string | null
+  course:
+    | 'Appetizer'
+    | 'Breakfast'
+    | 'Dessert'
+    | 'Drinks'
+    | 'Main Course'
+    | 'Side Dish'
+    | 'Snack'
+    | null
+  cuisine: string | null
+  equipment: Array<string> | null
+  notes: string | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+  pairsWithBook: {
+    title: string
+    slug: string
+  } | null
+  seo: Seo | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: allRecipesQuery
+// Query: *[_type == "recipe" && defined(slug.current)] | order(date desc, _updatedAt desc) {      _id,  "title": coalesce(title, "Untitled Recipe"),  "slug": slug.current,  coverImage,  body,  ingredients,  steps,  prepTime,  cookTime,  servings,  course,  cuisine,  equipment,  notes,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  "pairsWithBook": pairsWithBook->{title, "slug": slug.current},  seo,  }
+export type AllRecipesQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  body: BlockContent | null
+  ingredients: Array<
+    {
+      _key: string
+    } & IngredientGroup
+  >
+  steps: Array<string>
+  prepTime: number | null
+  cookTime: number | null
+  servings: string | null
+  course:
+    | 'Appetizer'
+    | 'Breakfast'
+    | 'Dessert'
+    | 'Drinks'
+    | 'Main Course'
+    | 'Side Dish'
+    | 'Snack'
+    | null
+  cuisine: string | null
+  equipment: Array<string> | null
+  notes: string | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+  pairsWithBook: {
+    title: string
+    slug: string
+  } | null
+  seo: Seo | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: recentRecipesQuery
+// Query: *[_type == "recipe" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...6] {      _id,  "title": coalesce(title, "Untitled Recipe"),  "slug": slug.current,  coverImage,  body,  ingredients,  steps,  prepTime,  cookTime,  servings,  course,  cuisine,  equipment,  notes,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  "pairsWithBook": pairsWithBook->{title, "slug": slug.current},  seo,  }
+export type RecentRecipesQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  body: BlockContent | null
+  ingredients: Array<
+    {
+      _key: string
+    } & IngredientGroup
+  >
+  steps: Array<string>
+  prepTime: number | null
+  cookTime: number | null
+  servings: string | null
+  course:
+    | 'Appetizer'
+    | 'Breakfast'
+    | 'Dessert'
+    | 'Drinks'
+    | 'Main Course'
+    | 'Side Dish'
+    | 'Snack'
+    | null
+  cuisine: string | null
+  equipment: Array<string> | null
+  notes: string | null
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+  pairsWithBook: {
+    title: string
+    slug: string
+  } | null
+  seo: Seo | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: recipePagesSlugs
+// Query: *[_type == "recipe" && defined(slug.current)]  {"slug": slug.current}
+export type RecipePagesSlugsResult = Array<{
+  slug: string
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: discussionGuideQuery
+// Query: *[_type == "discussionGuide" && slug.current == $slug] [0] {    body[]{      ...,      markDefs[]{        ...,          _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }    },      _id,  "title": coalesce(bookTitle, "Untitled Guide"),  bookTitle,  bookAuthor,  bookCover,  "slug": slug.current,  summary,  affiliateUrl,  body,  questions,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  "pairsWithRecipe": pairsWithRecipe->{title, "slug": slug.current, coverImage},  seo,  }
+export type DiscussionGuideQueryResult = {
+  body: BlockContent | null
+  _id: string
+  title: string
+  bookTitle: string
+  bookAuthor: string
+  bookCover: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  slug: string
+  summary: string | null
+  affiliateUrl: string | null
+  questions: Array<string>
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+  pairsWithRecipe: {
+    title: string
+    slug: string
+    coverImage: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+  } | null
+  seo: Seo | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: allDiscussionGuidesQuery
+// Query: *[_type == "discussionGuide" && defined(slug.current)] | order(date desc, _updatedAt desc) {      _id,  "title": coalesce(bookTitle, "Untitled Guide"),  bookTitle,  bookAuthor,  bookCover,  "slug": slug.current,  summary,  affiliateUrl,  body,  questions,  "date": coalesce(date, _updatedAt),  "author": author->{firstName, lastName, picture},  "pairsWithRecipe": pairsWithRecipe->{title, "slug": slug.current, coverImage},  seo,  }
+export type AllDiscussionGuidesQueryResult = Array<{
+  _id: string
+  title: string
+  bookTitle: string
+  bookAuthor: string
+  bookCover: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  slug: string
+  summary: string | null
+  affiliateUrl: string | null
+  body: BlockContent | null
+  questions: Array<string>
+  date: string
+  author: {
+    firstName: string
+    lastName: string
+    picture: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    }
+  } | null
+  pairsWithRecipe: {
+    title: string
+    slug: string
+    coverImage: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+  } | null
+  seo: Seo | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: discussionGuidePagesSlugs
+// Query: *[_type == "discussionGuide" && defined(slug.current)]  {"slug": slug.current}
+export type DiscussionGuidePagesSlugsResult = Array<{
+  slug: string
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: bookClubKitQuery
+// Query: *[_type == "bookClubKit" && slug.current == $slug] [0] {    body[]{      ...,      markDefs[]{        ...,          _type == "link" => {    "page": page->slug.current,    "post": post->slug.current  }      }    },      _id,  "title": coalesce(title, "Untitled Kit"),  "slug": slug.current,  month,  year,  body,  coverImage,  journalPrompts,  "bookPick": bookPick->{_type, title, bookTitle, "slug": slug.current},  "recipe": recipe->{title, "slug": slug.current, coverImage, prepTime, cookTime, servings},  "discussionGuide": discussionGuide->{bookTitle, bookAuthor, "slug": slug.current, bookCover},  "date": coalesce(date, _updatedAt),  seo,  }
+export type BookClubKitQueryResult = {
+  body: BlockContent | null
+  _id: string
+  title: string
+  slug: string
+  month:
+    | 'April'
+    | 'August'
+    | 'December'
+    | 'February'
+    | 'January'
+    | 'July'
+    | 'June'
+    | 'March'
+    | 'May'
+    | 'November'
+    | 'October'
+    | 'September'
+    | null
+  year: number | null
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  journalPrompts: Array<string> | null
+  bookPick:
+    | {
+        _type: 'discussionGuide'
+        title: null
+        bookTitle: string
+        slug: string
+      }
+    | {
+        _type: 'post'
+        title: string
+        bookTitle: null
+        slug: string
+      }
+    | null
+  recipe: {
+    title: string
+    slug: string
+    coverImage: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+    prepTime: number | null
+    cookTime: number | null
+    servings: string | null
+  } | null
+  discussionGuide: {
+    bookTitle: string
+    bookAuthor: string
+    slug: string
+    bookCover: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+  } | null
+  date: string
+  seo: Seo | null
+} | null
+
+// Source: sanity/lib/queries.ts
+// Variable: allBookClubKitsQuery
+// Query: *[_type == "bookClubKit" && defined(slug.current)] | order(date desc, _updatedAt desc) {      _id,  "title": coalesce(title, "Untitled Kit"),  "slug": slug.current,  month,  year,  body,  coverImage,  journalPrompts,  "bookPick": bookPick->{_type, title, bookTitle, "slug": slug.current},  "recipe": recipe->{title, "slug": slug.current, coverImage, prepTime, cookTime, servings},  "discussionGuide": discussionGuide->{bookTitle, bookAuthor, "slug": slug.current, bookCover},  "date": coalesce(date, _updatedAt),  seo,  }
+export type AllBookClubKitsQueryResult = Array<{
+  _id: string
+  title: string
+  slug: string
+  month:
+    | 'April'
+    | 'August'
+    | 'December'
+    | 'February'
+    | 'January'
+    | 'July'
+    | 'June'
+    | 'March'
+    | 'May'
+    | 'November'
+    | 'October'
+    | 'September'
+    | null
+  year: number | null
+  body: BlockContent | null
+  coverImage: {
+    asset?: SanityImageAssetReference
+    media?: unknown
+    hotspot?: SanityImageHotspot
+    crop?: SanityImageCrop
+    alt?: string
+    _type: 'image'
+  } | null
+  journalPrompts: Array<string> | null
+  bookPick:
+    | {
+        _type: 'discussionGuide'
+        title: null
+        bookTitle: string
+        slug: string
+      }
+    | {
+        _type: 'post'
+        title: string
+        bookTitle: null
+        slug: string
+      }
+    | null
+  recipe: {
+    title: string
+    slug: string
+    coverImage: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+    prepTime: number | null
+    cookTime: number | null
+    servings: string | null
+  } | null
+  discussionGuide: {
+    bookTitle: string
+    bookAuthor: string
+    slug: string
+    bookCover: {
+      asset?: SanityImageAssetReference
+      media?: unknown
+      hotspot?: SanityImageHotspot
+      crop?: SanityImageCrop
+      alt?: string
+      _type: 'image'
+    } | null
+  } | null
+  date: string
+  seo: Seo | null
+}>
+
+// Source: sanity/lib/queries.ts
+// Variable: bookClubKitPagesSlugs
+// Query: *[_type == "bookClubKit" && defined(slug.current)]  {"slug": slug.current}
+export type BookClubKitPagesSlugsResult = Array<{
+  slug: string
+}>
+
 // Query TypeMap
 import '@sanity/client'
 declare module '@sanity/client' {
   interface SanityQueries {
     '*[_type == "settings"][0]': SettingsQueryResult
     '\n  *[_type == \'page\' && slug.current == $slug][0]{\n    _id,\n    _type,\n    name,\n    slug,\n    heading,\n    subheading,\n    "pageBuilder": pageBuilder[]{\n      ...,\n      _type == "callToAction" => {\n        ...,\n        button {\n          ...,\n          \n  link {\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n\n        }\n      },\n      _type == "infoSection" => {\n        content[]{\n          ...,\n          markDefs[]{\n            ...,\n            \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n          }\n        }\n      },\n    },\n  }\n': GetPageQueryResult
-    '\n  *[_type == "page" || _type == "post" && defined(slug.current)] | order(_type asc) {\n    "slug": slug.current,\n    _type,\n    _updatedAt,\n  }\n': SitemapDataResult
+    '\n  *[_type in ["page", "post", "recipe", "discussionGuide", "bookClubKit"] && defined(slug.current)] | order(_type asc) {\n    "slug": slug.current,\n    _type,\n    _updatedAt,\n  }\n': SitemapDataResult
     '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': AllPostsQueryResult
+    '\n  *[_type == "post" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...4] {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': RecentPostsQueryResult
     '\n  *[_type == "post" && _id != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': MorePostsQueryResult
     '\n  *[_type == "post" && slug.current == $slug] [0] {\n    content[]{\n    ...,\n    markDefs[]{\n      ...,\n      \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n    }\n  },\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': PostQueryResult
     '\n  *[_type == "post" && defined(slug.current)]\n  {"slug": slug.current}\n': PostPagesSlugsResult
     '\n  *[_type == "page" && defined(slug.current)]\n  {"slug": slug.current}\n': PagesSlugsResult
+    '\n  *[_type in ["page", "post"] && defined(slug.current)]\n  {"slug": slug.current}\n': PageOrPostSlugsResult
+    '\n  *[_type == "post" && slug.current == $slug] [0] {\n    content[]{\n      ...,\n      markDefs[]{\n        ...,\n        \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n    },\n    \n  _id,\n  "status": select(_originalId in path("drafts.**") => "draft", "published"),\n  "title": coalesce(title, "Untitled"),\n  "slug": slug.current,\n  excerpt,\n  coverImage,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n\n  }\n': PostBySlugQueryResult
+    '\n  *[_type == "recipe" && slug.current == $slug] [0] {\n    body[]{\n      ...,\n      markDefs[]{\n        ...,\n        \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n    },\n    \n  _id,\n  "title": coalesce(title, "Untitled Recipe"),\n  "slug": slug.current,\n  coverImage,\n  body,\n  ingredients,\n  steps,\n  prepTime,\n  cookTime,\n  servings,\n  course,\n  cuisine,\n  equipment,\n  notes,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n  "pairsWithBook": pairsWithBook->{title, "slug": slug.current},\n  seo,\n\n  }\n': RecipeQueryResult
+    '\n  *[_type == "recipe" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "title": coalesce(title, "Untitled Recipe"),\n  "slug": slug.current,\n  coverImage,\n  body,\n  ingredients,\n  steps,\n  prepTime,\n  cookTime,\n  servings,\n  course,\n  cuisine,\n  equipment,\n  notes,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n  "pairsWithBook": pairsWithBook->{title, "slug": slug.current},\n  seo,\n\n  }\n': AllRecipesQueryResult
+    '\n  *[_type == "recipe" && defined(slug.current)] | order(date desc, _updatedAt desc) [0...6] {\n    \n  _id,\n  "title": coalesce(title, "Untitled Recipe"),\n  "slug": slug.current,\n  coverImage,\n  body,\n  ingredients,\n  steps,\n  prepTime,\n  cookTime,\n  servings,\n  course,\n  cuisine,\n  equipment,\n  notes,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n  "pairsWithBook": pairsWithBook->{title, "slug": slug.current},\n  seo,\n\n  }\n': RecentRecipesQueryResult
+    '\n  *[_type == "recipe" && defined(slug.current)]\n  {"slug": slug.current}\n': RecipePagesSlugsResult
+    '\n  *[_type == "discussionGuide" && slug.current == $slug] [0] {\n    body[]{\n      ...,\n      markDefs[]{\n        ...,\n        \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n    },\n    \n  _id,\n  "title": coalesce(bookTitle, "Untitled Guide"),\n  bookTitle,\n  bookAuthor,\n  bookCover,\n  "slug": slug.current,\n  summary,\n  affiliateUrl,\n  body,\n  questions,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n  "pairsWithRecipe": pairsWithRecipe->{title, "slug": slug.current, coverImage},\n  seo,\n\n  }\n': DiscussionGuideQueryResult
+    '\n  *[_type == "discussionGuide" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "title": coalesce(bookTitle, "Untitled Guide"),\n  bookTitle,\n  bookAuthor,\n  bookCover,\n  "slug": slug.current,\n  summary,\n  affiliateUrl,\n  body,\n  questions,\n  "date": coalesce(date, _updatedAt),\n  "author": author->{firstName, lastName, picture},\n  "pairsWithRecipe": pairsWithRecipe->{title, "slug": slug.current, coverImage},\n  seo,\n\n  }\n': AllDiscussionGuidesQueryResult
+    '\n  *[_type == "discussionGuide" && defined(slug.current)]\n  {"slug": slug.current}\n': DiscussionGuidePagesSlugsResult
+    '\n  *[_type == "bookClubKit" && slug.current == $slug] [0] {\n    body[]{\n      ...,\n      markDefs[]{\n        ...,\n        \n  _type == "link" => {\n    "page": page->slug.current,\n    "post": post->slug.current\n  }\n\n      }\n    },\n    \n  _id,\n  "title": coalesce(title, "Untitled Kit"),\n  "slug": slug.current,\n  month,\n  year,\n  body,\n  coverImage,\n  journalPrompts,\n  "bookPick": bookPick->{_type, title, bookTitle, "slug": slug.current},\n  "recipe": recipe->{title, "slug": slug.current, coverImage, prepTime, cookTime, servings},\n  "discussionGuide": discussionGuide->{bookTitle, bookAuthor, "slug": slug.current, bookCover},\n  "date": coalesce(date, _updatedAt),\n  seo,\n\n  }\n': BookClubKitQueryResult
+    '\n  *[_type == "bookClubKit" && defined(slug.current)] | order(date desc, _updatedAt desc) {\n    \n  _id,\n  "title": coalesce(title, "Untitled Kit"),\n  "slug": slug.current,\n  month,\n  year,\n  body,\n  coverImage,\n  journalPrompts,\n  "bookPick": bookPick->{_type, title, bookTitle, "slug": slug.current},\n  "recipe": recipe->{title, "slug": slug.current, coverImage, prepTime, cookTime, servings},\n  "discussionGuide": discussionGuide->{bookTitle, bookAuthor, "slug": slug.current, bookCover},\n  "date": coalesce(date, _updatedAt),\n  seo,\n\n  }\n': AllBookClubKitsQueryResult
+    '\n  *[_type == "bookClubKit" && defined(slug.current)]\n  {"slug": slug.current}\n': BookClubKitPagesSlugsResult
   }
 }

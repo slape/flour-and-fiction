@@ -7,6 +7,7 @@ import Avatar from '@/app/components/Avatar'
 import {MorePosts} from '@/app/components/Posts'
 import PortableText from '@/app/components/PortableText'
 import Image from '@/app/components/SanityImage'
+import JsonLd, {articleJsonLd} from '@/app/components/JsonLd'
 import {sanityFetch} from '@/sanity/lib/live'
 import {postPagesSlugs, postQuery} from '@/sanity/lib/queries'
 import {resolveOpenGraphImage} from '@/sanity/lib/utils'
@@ -65,8 +66,21 @@ export default async function PostPage(props: Props) {
     return notFound()
   }
 
+  const authorName =
+    post.author?.firstName && post.author?.lastName
+      ? `${post.author.firstName} ${post.author.lastName}`
+      : undefined
+
+  const jsonLd = articleJsonLd({
+    headline: post.title,
+    description: post.excerpt || undefined,
+    authorName,
+    datePublished: post.date,
+  })
+
   return (
     <>
+      <JsonLd data={jsonLd} />
       <div className="">
         <div className="container my-12 lg:my-24 grid gap-12">
           <div>

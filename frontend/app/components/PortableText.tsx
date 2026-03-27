@@ -98,11 +98,23 @@ export default function CustomPortableText({
       link: ({children, value: link}) => {
         return <ResolvedLink link={link}>{children}</ResolvedLink>
       },
+      affiliateLink: ({children, value}) => {
+        return (
+          <a
+            href={value?.href}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            className="text-crimson underline decoration-crimson/40 hover:decoration-crimson transition-colors"
+          >
+            {children}
+          </a>
+        )
+      },
     },
   }
 
   return (
-    <div className={`prose-a:text-brand prose dark:prose-invert ${className}`}>
+    <div className={`prose-a:text-crimson prose dark:prose-invert ${className}`}>
       <PortableText components={components} value={value} />
     </div>
   )

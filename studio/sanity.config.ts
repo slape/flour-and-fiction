@@ -38,6 +38,12 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
       return slug ? `/posts/${slug}` : undefined
     case 'page':
       return slug ? `/${slug}` : undefined
+    case 'recipe':
+      return slug ? `/recipes/${slug}` : undefined
+    case 'discussionGuide':
+      return slug ? `/discussion/${slug}` : undefined
+    case 'bookClubKit':
+      return slug ? `/kits/${slug}` : undefined
     default:
       console.warn('Invalid document type:', documentType)
       return undefined
@@ -47,7 +53,7 @@ function resolveHref(documentType?: string, slug?: string): string | undefined {
 // Main Sanity configuration
 export default defineConfig({
   name: 'default',
-  title: 'Sanity + Next.js Starter Template',
+  title: 'Flour & Fiction',
 
   projectId,
   dataset,
@@ -75,6 +81,18 @@ export default defineConfig({
           {
             route: '/posts/:slug',
             filter: `_type == "post" && slug.current == $slug || _id == $slug`,
+          },
+          {
+            route: '/recipes/:slug',
+            filter: `_type == "recipe" && slug.current == $slug || _id == $slug`,
+          },
+          {
+            route: '/discussion/:slug',
+            filter: `_type == "discussionGuide" && slug.current == $slug || _id == $slug`,
+          },
+          {
+            route: '/kits/:slug',
+            filter: `_type == "bookClubKit" && slug.current == $slug || _id == $slug`,
           },
         ]),
         // Locations Resolver API allows you to define where data is being used in your application. https://www.sanity.io/docs/visual-editing/presentation-resolver-api#8d8bca7bfcd7
@@ -114,6 +132,48 @@ export default defineConfig({
                   href: '/',
                 } satisfies DocumentLocation,
               ].filter(Boolean) as DocumentLocation[],
+            }),
+          }),
+          recipe: defineLocations({
+            select: {
+              title: 'title',
+              slug: 'slug.current',
+            },
+            resolve: (doc) => ({
+              locations: [
+                {
+                  title: doc?.title || 'Untitled Recipe',
+                  href: resolveHref('recipe', doc?.slug)!,
+                },
+              ],
+            }),
+          }),
+          discussionGuide: defineLocations({
+            select: {
+              title: 'bookTitle',
+              slug: 'slug.current',
+            },
+            resolve: (doc) => ({
+              locations: [
+                {
+                  title: doc?.title || 'Untitled Guide',
+                  href: resolveHref('discussionGuide', doc?.slug)!,
+                },
+              ],
+            }),
+          }),
+          bookClubKit: defineLocations({
+            select: {
+              title: 'title',
+              slug: 'slug.current',
+            },
+            resolve: (doc) => ({
+              locations: [
+                {
+                  title: doc?.title || 'Untitled Kit',
+                  href: resolveHref('bookClubKit', doc?.slug)!,
+                },
+              ],
             }),
           }),
         },

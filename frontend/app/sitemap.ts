@@ -3,13 +3,8 @@ import {sanityFetch} from '@/sanity/lib/live'
 import {sitemapData} from '@/sanity/lib/queries'
 import {headers} from 'next/headers'
 
-/**
- * This file creates a sitemap (sitemap.xml) for the application. Learn more about sitemaps in Next.js here: https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
- * Be sure to update the `changeFrequency` and `priority` values to match your application's content.
- */
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const allPostsAndPages = await sanityFetch({
+  const allContent = await sanityFetch({
     query: sitemapData,
   })
   const headersList = await headers()
@@ -22,20 +17,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     changeFrequency: 'monthly',
   })
 
-  if (allPostsAndPages != null && allPostsAndPages.data.length != 0) {
-    let priority: number
-    let changeFrequency:
-      | 'monthly'
-      | 'always'
-      | 'hourly'
-      | 'daily'
-      | 'weekly'
-      | 'yearly'
-      | 'never'
-      | undefined
-    let url: string
+  if (allContent != null && allContent.data.length != 0) {
+    for (const p of allContent.data) {
+      let priority: number = 0.5
+      let changeFrequency: 'monthly' | 'weekly' | 'never' = 'never'
+      let url: string = ''
 
-    for (const p of allPostsAndPages.data) {
       switch (p._type) {
         case 'page':
           priority = 0.8
@@ -43,17 +30,34 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           url = `${domain}/${p.slug}`
           break
         case 'post':
-          priority = 0.5
+          priority = 0.6
           changeFrequency = 'never'
-          url = `${domain}/posts/${p.slug}`
+          url = `${domain}/${p.slug}`
+          break
+        case 'recipe':
+          priority = 0.7
+          changeFrequency = 'monthly'
+          url = `${domain}/recipes/${p.slug}`
+          break
+        case 'discussionGuide':
+          priority = 0.7
+          changeFrequency = 'monthly'
+          url = `${domain}/discussion/${p.slug}`
+          break
+        case 'bookClubKit':
+          priority = 0.6
+          changeFrequency = 'monthly'
+          url = `${domain}/kits/${p.slug}`
           break
       }
-      sitemap.push({
-        lastModified: p._updatedAt || new Date(),
-        priority,
-        changeFrequency,
-        url,
-      })
+      if (url) {
+        sitemap.push({
+          lastModified: p._updatedAt || new Date(),
+          priority,
+          changeFrequency,
+          url,
+        })
+      }
     }
   }
 

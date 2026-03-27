@@ -1,94 +1,161 @@
 import {Suspense} from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import {PortableText} from '@portabletext/react'
 
-import {AllPosts} from '@/app/components/Posts'
-import GetStartedCode from '@/app/components/GetStartedCode'
-import SideBySideIcons from '@/app/components/SideBySideIcons'
-import {settingsQuery} from '@/sanity/lib/queries'
+import {EXPLORE_CATEGORIES} from '@/app/lib/navigation'
 import {sanityFetch} from '@/sanity/lib/live'
-import {dataAttr} from '@/sanity/lib/utils'
+import {recentPostsQuery} from '@/sanity/lib/queries'
+import {RecentPostsQueryResult} from '@/sanity.types'
+import SanityImage from '@/app/components/SanityImage'
 
-export default async function Page() {
-  const {data: settings} = await sanityFetch({
-    query: settingsQuery,
-  })
+function PostCard({post}: {post: RecentPostsQueryResult[number]}) {
+  return (
+    <Link href={`/${post.slug}`} className="group block no-underline">
+      {post.coverImage?.asset?._ref && (
+        <div className="mb-3 overflow-hidden aspect-[4/3]">
+          <SanityImage
+            id={post.coverImage.asset._ref}
+            width={400}
+            height={300}
+            className="w-full h-full object-cover"
+            alt={post.title || ''}
+          />
+        </div>
+      )}
+      <h3 className="font-serif text-lg group-hover:text-crimson transition-colors text-black">
+        {post.title}
+      </h3>
+      {post.excerpt && (
+        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{post.excerpt}</p>
+      )}
+    </Link>
+  )
+}
+
+async function LatestPosts() {
+  const {data: posts} = await sanityFetch({query: recentPostsQuery})
+  if (!posts || posts.length === 0) return null
 
   return (
+    <section className="container py-12 lg:py-16">
+      <h2 className="text-2xl mb-8 text-center font-serif">Latest Posts</h2>
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-wide mx-auto">
+        {posts.map((post: RecentPostsQueryResult[number]) => (
+          <PostCard key={post._id} post={post} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ExploreSection() {
+  return (
+    <section className="container py-12 lg:py-16">
+      <h2 className="text-2xl mb-8 text-center font-serif">Explore</h2>
+      <div className="grid grid-cols-3 gap-4 max-w-wide mx-auto">
+        {EXPLORE_CATEGORIES.map((cat) => (
+          <Link
+            key={cat.name}
+            href={cat.href}
+            className="relative aspect-[4/3] overflow-hidden group no-underline"
+          >
+            <Image
+              src={cat.image}
+              alt={cat.name}
+              fill
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-white text-2xl sm:text-3xl font-serif tracking-wide uppercase">
+                {cat.name}
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+export default async function Page() {
+  return (
     <>
-      <div className="relative">
-        <div className="relative bg-[url(/images/tile-1-black.png)] bg-size-[5px]">
-          <div className="bg-gradient-to-b from-white w-full h-full absolute top-0"></div>
-          <div className="container">
-            <div className="relative min-h-[40vh] mx-auto max-w-2xl pt-10 xl:pt-20 pb-30 space-y-6 lg:max-w-4xl lg:px-12 flex flex-col items-center justify-center">
-              <div className="flex flex-col gap-4 items-center">
-                <div className="text-md leading-6 prose uppercase py-1 px-3 bg-white font-mono italic">
-                  A starter template for
-                </div>
-                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tighter text-black">
-                  <Link
-                    className="underline decoration-brand hover:text-brand underline-offset-8 hover:underline-offset-4 transition-all ease-out"
-                    href="https://sanity.io/"
-                  >
-                    Sanity
-                  </Link>
-                  +
-                  <Link
-                    className="underline decoration-black text-framework underline-offset-8 hover:underline-offset-4 transition-all ease-out"
-                    href="https://nextjs.org/"
-                  >
-                    Next.js
-                  </Link>
-                </h1>
-              </div>
-            </div>
-          </div>
+      {/* Hero */}
+      <div className="container">
+        <div className="max-w-3xl mx-auto text-center py-16 lg:py-20">
+          <h1 className="text-4xl sm:text-5xl font-serif text-black">
+            Welcome, Bakers and Booklovers!
+          </h1>
+          <p className="mt-3 text-lg text-gray-500 italic">Let&apos;s get cozy.</p>
         </div>
-        <div className=" flex flex-col items-center">
-          <SideBySideIcons />
-          <div className="container relative mx-auto max-w-2xl pb-20 pt-10 space-y-6 lg:max-w-4xl lg:px-12 flex flex-col items-center">
-            <div className="prose sm:prose-lg md:prose-xl xl:prose-2xl text-gray-700 prose-a:text-gray-700 font-light text-center">
-              {settings?.description && (
-                <div
-                  data-sanity={dataAttr({
-                    id: settings._id,
-                    type: 'settings',
-                    path: 'description',
-                  }).toString()}
-                >
-                  <PortableText value={settings.description} />
-                </div>
-              )}
-              <div className="flex items-center flex-col gap-4">
-                <GetStartedCode />
-                <Link
-                  href="https://www.sanity.io/docs"
-                  className="inline-flex text-brand text-xs md:text-sm underline hover:text-gray-900"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Sanity Documentation
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    className="w-4 h-4 ml-1 inline"
-                    fill="currentColor"
-                  >
-                    <path d="M10 6V8H5V19H16V14H18V20C18 20.5523 17.5523 21 17 21H4C3.44772 21 3 20.5523 3 20V7C3 6.44772 3.44772 6 4 6H10ZM21 3V12L17.206 8.207L11.2071 14.2071L9.79289 12.7929L15.792 6.793L12 3H21Z"></path>
-                  </svg>
-                </Link>
-              </div>
-            </div>
+      </div>
+
+      {/* Literary Baking Adventure */}
+      <div className="bg-gray-50">
+        <div className="container py-12 lg:py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <h2 className="text-3xl font-serif mb-4">
+              Go on a Literary
+              <br />
+              Baking Adventure
+            </h2>
+            <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+              Let books inspire your baking. Learn how to become a better baker, and explore
+              the world through literature and food!
+            </p>
+            <p className="text-gray-500 text-sm mb-8">
+              Join our newsletter for creative recipes, book reviews, and tea recommendations.
+            </p>
+
+            {/* Newsletter signup */}
+            <form
+              className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              action="#"
+            >
+              <input
+                type="text"
+                placeholder="Name"
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-crimson"
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                className="flex-1 px-4 py-2.5 border border-gray-300 text-sm focus:outline-none focus:border-crimson"
+              />
+              <button
+                type="submit"
+                className="bg-crimson text-white px-6 py-2.5 text-sm font-semibold uppercase tracking-wider hover:bg-crimson-dark transition-colors"
+              >
+                Subscribe
+              </button>
+            </form>
           </div>
         </div>
       </div>
-      <div className="border-t border-gray-100 bg-gray-50">
-        <div className="container">
-          <aside className="py-12 sm:py-20">
-            <Suspense>{await AllPosts()}</Suspense>
-          </aside>
+
+      {/* Seasonal Feature */}
+      <div className="border-t border-gray-200">
+        <div className="container py-12 lg:py-16">
+          <div className="max-w-2xl mx-auto">
+            <p className="text-xs uppercase tracking-widest text-gray-400 mb-4">Featured</p>
+            <h2 className="text-3xl font-serif mb-3">Spring Has Sprung</h2>
+            <p className="text-gray-600 leading-relaxed">
+              Fruity bakes, floral teas, bright flavors, and rainy days that are made for you
+              and your next great read.
+            </p>
+          </div>
         </div>
       </div>
+
+      {/* Latest Posts */}
+      <div className="border-t border-gray-200">
+        <Suspense>{await LatestPosts()}</Suspense>
+      </div>
+
+      {/* Explore */}
+      <ExploreSection />
     </>
   )
 }

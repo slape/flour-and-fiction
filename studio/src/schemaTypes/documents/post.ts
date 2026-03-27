@@ -13,6 +13,10 @@ export const post = defineType({
   title: 'Post',
   icon: DocumentTextIcon,
   type: 'document',
+  groups: [
+    {name: 'content', title: 'Content', default: true},
+    {name: 'seo', title: 'SEO'},
+  ],
   fields: [
     defineField({
       name: 'title',
@@ -87,6 +91,7 @@ export const post = defineType({
       name: 'seo',
       title: 'SEO',
       type: 'seo',
+      group: 'seo',
     }),
   ],
   // List preview configuration. https://www.sanity.io/docs/previews-list-views
